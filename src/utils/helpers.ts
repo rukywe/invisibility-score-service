@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
+import logger from '../utils/logger';
 
 export interface UserData {
   gender: string;
@@ -21,8 +22,13 @@ export interface ResultData {
 }
 
 export const getUserData = async (): Promise<UserData> => {
-  const response = await axios.get('https://randomuser.me/api/');
-  return response.data.results[0];
+  try {
+    const response = await axios.get('https://randomuser.me/api/');
+    return response.data.results[0];
+  } catch (error) {
+    logger.error('Error fetching user data:', error);
+    throw new Error('Failed to fetch user data.');
+  }
 };
 
 export const calculateInvisibilityScore = (

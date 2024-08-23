@@ -8,6 +8,7 @@ import {
   UserData
 } from './utils/helpers';
 import { saveResultToCSV } from './utils/s3Operations';
+import logger from './utils/logger';
 
 export const superheroHandler = async (
   event: APIGatewayProxyEvent
@@ -63,7 +64,7 @@ export const superheroHandler = async (
       body: JSON.stringify(result)
     };
   } catch (error) {
-    console.error('Error:', error);
+    logger.error('Error:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Internal server error' })

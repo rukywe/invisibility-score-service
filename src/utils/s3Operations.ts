@@ -1,6 +1,7 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { parse } from 'json2csv';
 import { generateS3Key, ResultData } from './helpers';
+import logger from '../utils/logger';
 
 const s3Client = new S3Client({});
 
@@ -9,14 +10,14 @@ export const saveResultToCSV = async (result: ResultData): Promise<void> => {
   const stage = process.env.STAGE;
 
   if (!bucketName) {
-    console.warn(
+    logger.warn(
       'S3_BUCKET_NAME environment variable is not set. Skipping S3 upload.'
     );
     return;
   }
 
   if (process.env.IS_OFFLINE === 'true') {
-    console.log('Running offline. Skipping S3 upload.');
+    logger.info('Running offline. Skipping S3 upload.');
     return;
   }
 
@@ -43,7 +44,7 @@ export const saveResultToCSV = async (result: ResultData): Promise<void> => {
 
     await s3Client.send(command);
   } catch (error) {
-    console.error('Error saving CSV to S3:', error);
+    logger.error('Error saving CSV to S3:', error);
     if (error instanceof Error) {
       throw new Error(`Failed to save result to S3: ${error.message}`);
     } else {
