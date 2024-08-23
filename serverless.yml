@@ -16,6 +16,16 @@ provider:
           Action:
             - s3:PutObject
           Resource: arn:aws:s3:::invisibility-scores-bucket/*
+  apiGateway:
+    apiKeys:
+      - name: my-api-key
+    usagePlan:
+      throttle:
+        burstLimit: 20
+        rateLimit: 10
+      quota:
+        limit: 1000
+        period: MONTH
 
 functions:
   superheroHandler:
@@ -24,6 +34,7 @@ functions:
       - http:
           path: superhero
           method: post
+          private: true
 
 resources:
   Resources:
