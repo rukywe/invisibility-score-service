@@ -3,8 +3,11 @@ import {
   getUserData,
   calculateInvisibilityScore,
   normalizeScore,
-  getInvisibilityStatus
+  getInvisibilityStatus,
+  ResultData,
+  UserData
 } from './utils/helpers';
+import { saveResultToCSV } from './utils/s3Operations';
 
 export const superheroHandler = async (
   event: APIGatewayProxyEvent
@@ -25,26 +28,39 @@ export const superheroHandler = async (
       };
     }
 
-    const userData = await getUserData();
+    const fullUserData = await getUserData();
     const rawScore = calculateInvisibilityScore(
       superheroScore,
-      userData.dob.age,
-      userData.gender
+      fullUserData.dob.age,
+      fullUserData.gender
     );
     const normalizedScore = normalizeScore(rawScore);
     const status = getInvisibilityStatus(normalizedScore);
 
+    const filteredUserData: UserData = {
+      gender: fullUserData.gender,
+      name: {
+        first: fullUserData.name.first,
+        last: fullUserData.name.last
+      },
+      email: fullUserData.email,
+      dob: {
+        age: fullUserData.dob.age
+      }
+    };
+
+    const result: ResultData = {
+      superheroScore,
+      invisibilityScore: parseFloat(normalizedScore.toFixed(2)),
+      invisibilityStatus: status,
+      userData: filteredUserData
+    };
+
+    await saveResultToCSV(result);
+
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        superheroScore,
-        invisibilityScore: normalizedScore.toFixed(2),
-        invisibilityStatus: status,
-        userData: {
-          age: userData.dob.age,
-          gender: userData.gender
-        }
-      })
+      body: JSON.stringify(result)
     };
   } catch (error) {
     console.error('Error:', error);

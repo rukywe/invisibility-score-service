@@ -1,10 +1,23 @@
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface UserData {
   gender: string;
+  name: {
+    first: string;
+    last: string;
+  };
+  email: string;
   dob: {
     age: number;
   };
+}
+
+export interface ResultData {
+  superheroScore: number;
+  invisibilityScore: number;
+  invisibilityStatus: string;
+  userData: UserData;
 }
 
 export const getUserData = async (): Promise<UserData> => {
@@ -34,4 +47,11 @@ export const getInvisibilityStatus = (score: number): string => {
   if (score < 60) return 'Translucent';
   if (score < 80) return 'Transparent';
   return 'Invisible';
+};
+
+export const generateS3Key = (): string => {
+  const date = new Date();
+  const dateString = date.toLocaleDateString().replace(/\//g, '-');
+  const timeString = date.toLocaleTimeString().replace(/:/g, '-');
+  return `results/${dateString}-${timeString}-${uuidv4()}.csv`;
 };

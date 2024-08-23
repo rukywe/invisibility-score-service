@@ -4,6 +4,18 @@ provider:
   name: aws
   runtime: nodejs18.x
   region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  environment:
+    S3_BUCKET_NAME: invisibility-scores-bucket
+    STAGE: ${self:provider.stage}
+    IS_OFFLINE: ${self:custom.IS_OFFLINE}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - s3:PutObject
+          Resource: arn:aws:s3:::invisibility-scores-bucket/*
 
 functions:
   superheroHandler:
@@ -12,9 +24,19 @@ functions:
       - http:
           path: superhero
           method: post
+
+resources:
+  Resources:
+    InvisibilityScoreBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: invisibility-scores-bucket
+        AccessControl: Private
+
 plugins:
   - serverless-offline
 
 custom:
   serverless-offline:
     httpPort: 3000
+  IS_OFFLINE: ${env:IS_OFFLINE, "false"}
