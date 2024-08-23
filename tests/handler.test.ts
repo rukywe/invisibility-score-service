@@ -41,7 +41,7 @@ describe('superheroHandler', () => {
     });
   });
 
-  it('returns an error for invalid superhero score', async () => {
+  it('returns an error for superhero score above 100', async () => {
     const mockEvent = {
       body: JSON.stringify({ superheroScore: 150 })
     } as APIGatewayProxyEvent;
@@ -54,8 +54,60 @@ describe('superheroHandler', () => {
     });
   });
 
+  it('returns an error for superhero score below 0', async () => {
+    const mockEvent = {
+      body: JSON.stringify({ superheroScore: -10 })
+    } as APIGatewayProxyEvent;
+
+    const response = await superheroHandler(mockEvent);
+
+    expect(response.statusCode).toBe(400);
+    expect(JSON.parse(response.body)).toEqual({
+      error: 'Invalid superhero score. Must be a number between 0 and 100.'
+    });
+  });
+
   it('handles missing body gracefully', async () => {
     const mockEvent = {} as APIGatewayProxyEvent;
+
+    const response = await superheroHandler(mockEvent);
+
+    expect(response.statusCode).toBe(400);
+    expect(JSON.parse(response.body)).toEqual({
+      error: 'Missing request body.'
+    });
+  });
+
+  it('handles invalid JSON in request body', async () => {
+    const mockEvent = {
+      body: '{ "superheroScore": }'
+    } as APIGatewayProxyEvent;
+
+    const response = await superheroHandler(mockEvent);
+
+    expect(response.statusCode).toBe(400);
+    expect(JSON.parse(response.body)).toEqual({
+      error: 'Invalid JSON in request body.'
+    });
+  });
+
+  it('handles missing superheroScore in request body', async () => {
+    const mockEvent = {
+      body: JSON.stringify({ wrongInput: 34.2 })
+    } as APIGatewayProxyEvent;
+
+    const response = await superheroHandler(mockEvent);
+
+    expect(response.statusCode).toBe(400);
+    expect(JSON.parse(response.body)).toEqual({
+      error: 'Missing superheroScore in request body.'
+    });
+  });
+
+  it('handles non-numeric superheroScore', async () => {
+    const mockEvent = {
+      body: JSON.stringify({ superheroScore: 'not a number' })
+    } as APIGatewayProxyEvent;
 
     const response = await superheroHandler(mockEvent);
 

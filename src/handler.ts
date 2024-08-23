@@ -9,24 +9,39 @@ import {
 } from './utils/helpers';
 import { saveResultToCSV } from './utils/s3Operations';
 import logger from './utils/logger';
+import { CustomError, ValidationError } from './utils/error';
 
 export const superheroHandler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
-    const { superheroScore } = JSON.parse(event.body || '{}');
+    if (!event.body) {
+      throw new ValidationError('Missing request body.');
+    }
 
-    if (
-      typeof superheroScore !== 'number' ||
-      superheroScore < 0 ||
-      superheroScore > 100
-    ) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({
-          error: 'Invalid superhero score. Must be a number between 0 and 100.'
-        })
-      };
+    let parsedBody;
+    try {
+      parsedBody = JSON.parse(event.body);
+    } catch (error) {
+      throw new ValidationError('Invalid JSON in request body.');
+    }
+
+    if (!('superheroScore' in parsedBody)) {
+      throw new ValidationError('Missing superheroScore in request body.');
+    }
+
+    const { superheroScore } = parsedBody;
+
+    if (typeof superheroScore !== 'number') {
+      throw new ValidationError(
+        'Invalid superhero score. Must be a number between 0 and 100.'
+      );
+    }
+
+    if (superheroScore < 0 || superheroScore > 100) {
+      throw new ValidationError(
+        'Invalid superhero score. Must be a number between 0 and 100.'
+      );
     }
 
     const fullUserData = await getUserData();
@@ -65,9 +80,16 @@ export const superheroHandler = async (
     };
   } catch (error) {
     logger.error('Error:', error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Internal server error' })
-    };
+    if (error instanceof CustomError) {
+      return {
+        statusCode: error.statusCode,
+        body: JSON.stringify({ error: error.message })
+      };
+    } else {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'Internal server error' })
+      };
+    }
   }
 };

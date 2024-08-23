@@ -2,6 +2,7 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { parse } from 'json2csv';
 import { generateS3Key, ResultData } from './helpers';
 import logger from '../utils/logger';
+import { S3UploadError } from './error';
 
 const s3Client = new S3Client({});
 
@@ -46,9 +47,9 @@ export const saveResultToCSV = async (result: ResultData): Promise<void> => {
   } catch (error) {
     logger.error('Error saving CSV to S3:', error);
     if (error instanceof Error) {
-      throw new Error(`Failed to save result to S3: ${error.message}`);
+      throw new S3UploadError(`Failed to save result to S3: ${error.message}`);
     } else {
-      throw new Error('Failed to save result to S3: Unknown error');
+      throw new S3UploadError('Failed to save result to S3: Unknown error');
     }
   }
 };
