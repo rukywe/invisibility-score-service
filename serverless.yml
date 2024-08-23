@@ -15,7 +15,11 @@ provider:
         - Effect: Allow
           Action:
             - s3:PutObject
-          Resource: arn:aws:s3:::invisibility-scores-bucket/*
+            - s3:ListBucket
+            - s3:GetObject
+          Resource:
+            - arn:aws:s3:::invisibility-scores-bucket
+            - arn:aws:s3:::invisibility-scores-bucket/*
   apiGateway:
     apiKeys:
       - name: my-api-key
@@ -34,6 +38,13 @@ functions:
       - http:
           path: superhero
           method: post
+          private: true
+  listCSVsHandler:
+    handler: dist/listCSVsHandler.listCSVsHandler
+    events:
+      - http:
+          path: list-csvs
+          method: get
           private: true
 
 resources:
