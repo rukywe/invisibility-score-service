@@ -9,10 +9,7 @@ const logger = createLogger({
         `${timestamp} [${level.toUpperCase()}]: ${message}`
     )
   ),
-  transports: [
-    new transports.Console(),
-    new transports.File({ filename: 'logs/app.log' })
-  ]
+  transports: [new transports.Console()]
 });
 
 export default logger;
